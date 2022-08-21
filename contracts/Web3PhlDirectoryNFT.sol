@@ -145,10 +145,10 @@ contract Web3PhlDirectoryNFT is ERC721, ERC721Enumerable, ReentrancyGuard, Ownab
         _tokenIdCounter.increment();
         uint256 tokenId = _tokenIdCounter.current();
 
-        names[_tokenIdCounter.current()] = _name;
-        descriptions[_tokenIdCounter.current()] = _description;
-        websites[_tokenIdCounter.current()] = _website;
-        tags[_tokenIdCounter.current()] = _tags;
+        names[tokenId] = _name;
+        descriptions[tokenId] = _description;
+        websites[tokenId] = _website;
+        tags[tokenId] = _tags;
 
         _safeMint(msg.sender, tokenId);
     }
