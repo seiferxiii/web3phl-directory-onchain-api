@@ -9,6 +9,10 @@ import "@openzeppelin/contracts/utils/Base64.sol";
 
 contract Web3PhlDirectoryNFT is ERC721, ERC721Enumerable, ReentrancyGuard, Ownable {
 
+    using Counters for Counters.Counter;
+
+    Counters.Counter private _tokenIdCounter;
+
     struct Entity {
         string name;
         string description;
@@ -68,35 +72,30 @@ contract Web3PhlDirectoryNFT is ERC721, ERC721Enumerable, ReentrancyGuard, Ownab
     }
 
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
-        string[10] memory parts;
+        string[8] memory parts;
         parts[0] = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: black; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="white" /><text x="10" y="20" class="base">';
 
         parts[1] = getName(tokenId);
 
         parts[2] = '</text><text x="10" y="40" class="base">';
 
-        parts[3] = getDescription(tokenId);
+        parts[3] = getWebsite(tokenId);
 
         parts[4] = '</text><text x="10" y="60" class="base">';
 
-        parts[5] = getWebsite(tokenId);
+        if(isVerifiedEntity(tokenId)){
+            parts[5] = "Verified";
+        }else{
+            parts[5] = "";
+        }
 
         parts[6] = '</text><text x="10" y="80" class="base">';
 
-        if(isVerifiedEntity(tokenId)){
-            parts[7] = "Verified";
-        }else{
-            parts[7] = "";
-        }
-
-        parts[8] = '</text><text x="10" y="80" class="base">';
-
-        parts[9] = '</text></svg>';
+        parts[7] = '</text></svg>';
 
         string memory output = string(abi.encodePacked(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7]));
-        output = string(abi.encodePacked(output, parts[9]));
         
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Web3Phl #', toString(tokenId), '", "description": "Web3 Philippines Directory is an open-source web application digital local directory of awesome Web3 things curated by the community.", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '"}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "', getName(tokenId), '", "description":  "', getDescription(tokenId), '", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(output)), '"}'))));
         output = string(abi.encodePacked('data:application/json;base64,', json));
 
         return output;
@@ -140,5 +139,17 @@ contract Web3PhlDirectoryNFT is ERC721, ERC721Enumerable, ReentrancyGuard, Ownab
         override(ERC721, ERC721Enumerable)
     {
         super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    function safeMint(string memory _name, string memory _description, string memory _website, string[] memory _tags) external nonReentrant {
+        _tokenIdCounter.increment();
+        uint256 tokenId = _tokenIdCounter.current();
+
+        names[_tokenIdCounter.current()] = _name;
+        descriptions[_tokenIdCounter.current()] = _description;
+        websites[_tokenIdCounter.current()] = _website;
+        tags[_tokenIdCounter.current()] = _tags;
+
+        _safeMint(msg.sender, tokenId);
     }
 }
